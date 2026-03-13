@@ -30,26 +30,31 @@ import { toast } from "sonner";
 import { z } from "zod";
 import PasswordInput from "../components/password-input";
 
-const signupSchema = z.object({
-  firstName: z.string().trim().min(1, "O nome é obrigatório"),
-  lastName: z.string().trim().min(1, "O sobrenome é obrigatório"),
-  email: z
-    .string()
-    .email("Email inválido")
-    .trim()
-    .min(1, "O email é obrigatório"),
-  password: z
-    .string()
-    .trim()
-    .min(6, "A senha deve ter pelo menos 6 caracteres"),
-  passwordConfirmation: z
-    .string()
-    .trim()
-    .min(6, "A confirmação de senha é obrigatória"),
-  terms: z.boolean().refine((value) => value === true, {
-    message: "Você deve aceitar os termos de uso e política de privacidade",
-  }),
-});
+const signupSchema = z
+  .object({
+    firstName: z.string().trim().min(1, "O nome é obrigatório"),
+    lastName: z.string().trim().min(1, "O sobrenome é obrigatório"),
+    email: z
+      .string()
+      .email("Email inválido")
+      .trim()
+      .min(1, "O email é obrigatório"),
+    password: z
+      .string()
+      .trim()
+      .min(6, "A senha deve ter pelo menos 6 caracteres"),
+    passwordConfirmation: z
+      .string()
+      .trim()
+      .min(6, "A confirmação de senha é obrigatória"),
+    terms: z.boolean().refine((value) => value === true, {
+      message: "Você deve aceitar os termos de uso e política de privacidade",
+    }),
+  })
+  .refine((data) => data.password === data.passwordConfirmation, {
+    message: "As senhas não coincidem",
+    path: ["passwordConfirmation"],
+  });
 
 const SignUpPage = () => {
   const [user, setUser] = useState(null);

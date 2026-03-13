@@ -20,9 +20,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { api } from "@/lib/axios";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import { z } from "zod";
 import PasswordInput from "../components/password-input";
 
@@ -48,7 +52,21 @@ const signupSchema = z.object({
 });
 
 const SignUpPage = () => {
-  const methods = useForm({
+  const [user, setUser] = useState(null);
+  const signupMutation = useMutation({
+    mutationKey: ["signup"],
+    mutationFn: async (variables) => {
+      const responde = await api.post("users", {
+        first_name: variables.firstName,
+        last_name: variables.lastName,
+        email: variables.email,
+        password: variables.password,
+      });
+      return responde.data;
+    },
+  });
+
+  const form = useForm({
     resolver: zodResolver(signupSchema),
     defaultValues: {
       firstName: "",
@@ -59,14 +77,33 @@ const SignUpPage = () => {
       terms: false,
     },
   });
+
   const handleSubmit = (data) => {
-    console.log(data);
+    signupMutation.mutate(data, {
+      onSuccess: (createdUser) => {
+        const accessToken = createdUser.tokens.accessToken;
+        const refreshToken = createdUser.tokens.refreshToken;
+
+        setUser(createdUser);
+
+        localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("refreshToken", refreshToken);
+
+        toast.success("Conta criada com sucesso!");
+      },
+      onError: () => {
+        toast.error("Ocorreu um erro ao criar a conta. Tente novamente.");
+      },
+    });
   };
 
+  if (user) {
+    return <h1>Olá, {user.first_name}!</h1>;
+  }
   return (
     <div className="flex h-screen w-screen flex-col gap-3 items-center justify-center">
-      <Form {...methods}>
-        <form onSubmit={methods.handleSubmit(handleSubmit)}>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)}>
           <Card className="w-[500px]">
             <CardHeader className="text-center">
               <CardTitle>Crie a sua conta</CardTitle>
@@ -74,7 +111,7 @@ const SignUpPage = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <FormField
-                control={methods.control}
+                control={form.control}
                 name="firstName"
                 render={({ field }) => (
                   <FormItem>
@@ -87,7 +124,7 @@ const SignUpPage = () => {
                 )}
               />
               <FormField
-                control={methods.control}
+                control={form.control}
                 name="lastName"
                 render={({ field }) => (
                   <FormItem>
@@ -100,7 +137,7 @@ const SignUpPage = () => {
                 )}
               />
               <FormField
-                control={methods.control}
+                control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
@@ -113,7 +150,7 @@ const SignUpPage = () => {
                 )}
               />
               <FormField
-                control={methods.control}
+                control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
@@ -126,7 +163,7 @@ const SignUpPage = () => {
                 )}
               />
               <FormField
-                control={methods.control}
+                control={form.control}
                 name="passwordConfirmation"
                 render={({ field }) => (
                   <FormItem>
@@ -142,7 +179,7 @@ const SignUpPage = () => {
                 )}
               />
               <FormField
-                control={methods.control}
+                control={form.control}
                 name="terms"
                 render={({ field }) => (
                   <FormItem className="items-top flex space-x-2 space-y-0">
@@ -158,7 +195,7 @@ const SignUpPage = () => {
                       <label
                         htmlFor="terms"
                         className={`text-xs opacity-75 ${
-                          methods.formState.errors.terms
+                          form.formState.errors.terms
                             ? "text-red-500"
                             : "text-muted-foreground"
                         }`}

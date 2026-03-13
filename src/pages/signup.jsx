@@ -11,6 +11,7 @@ import {
 
 import { Input } from "@/components/ui/input";
 
+import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 import PasswordInput from "../components/password-input";
 
@@ -28,6 +29,19 @@ const SignUpPage = () => {
           <Input placeholder="Digite seu email" />
           <PasswordInput />
           <PasswordInput placeholder="Confirme sua senha" />
+
+          <div className="itens-top flex space-x-2">
+            <Checkbox id="terms" />
+            <div className="grid gap-1.5 leading-none">
+              <label
+                htmlFor="terms"
+                className="text-nuted-foreground opacity-75 text-xs"
+              >
+                Ao clicar em Criar conta, você concorda com o nosso termo de uso
+                e política de privacidade.
+              </label>
+            </div>
+          </div>
         </CardContent>
         <CardFooter>
           <Button className="w-full">Criar conta</Button>

@@ -61,12 +61,15 @@ const SignUpPage = () => {
   const signupMutation = useMutation({
     mutationKey: ["signup"],
     mutationFn: async (variables) => {
-      const response = await api.post("users", {
+      console.log("DADOS ENVIADOS:", variables);
+
+      const response = await api.post("/users", {
         first_name: variables.firstName,
         last_name: variables.lastName,
         email: variables.email,
         password: variables.password,
       });
+
       return response.data;
     },
   });
@@ -116,8 +119,9 @@ const SignUpPage = () => {
 
         toast.success("Conta criada com sucesso!");
       },
-      onError: () => {
-        toast.error("Ocorreu um erro ao criar a conta. Tente novamente.");
+      onError: (error) => {
+        console.log("ERRO API:", error.response?.data);
+        toast.error("Erro ao criar conta.");
       },
     });
   };

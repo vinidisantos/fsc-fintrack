@@ -22,12 +22,13 @@ import {
 import { api } from "@/lib/axios";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
 import PasswordInput from "../components/password-input";
+import { AuthContext } from "../contexts/auth.jsx";
 
 const loginSchema = z.object({
   email: z
@@ -42,17 +43,9 @@ const loginSchema = z.object({
 });
 
 const LoginPage = () => {
+  const { userTest } = useContext(AuthContext);
   const [user, setUser] = useState(null);
-  const loginMutation = useMutation({
-    mutationKey: ["login"],
-    mutationFn: async (variables) => {
-      const response = await api.post("/users/login", {
-        email: variables.email,
-        password: variables.password,
-      });
-      return response.data;
-    },
-  });
+
   const form = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -80,14 +73,29 @@ const LoginPage = () => {
     };
     init();
   }, []);
+  const loginMutation = useMutation({
+    mutationKey: ["login"],
+    mutationFn: async (data) => {
+      const response = await api.post("/auth/login", {
+        email: data.email,
+        password: data.password,
+      });
+
+      return response.data;
+    },
+  });
+
   const handleSubmit = (data) => {
     loginMutation.mutate(data, {
       onSuccess: (loggedUser) => {
         const accessToken = loggedUser.tokens.accessToken;
         const refreshToken = loggedUser.tokens.refreshToken;
+
         localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("refreshToken", refreshToken);
+
         setUser(loggedUser);
+
         toast.success("Login realizado com sucesso!");
       },
       onError: (error) => {
@@ -104,6 +112,7 @@ const LoginPage = () => {
 
   return (
     <div className="flex h-screen w-screen flex-col gap-3 items-center justify-center">
+      <h1>{userTest}</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
           <Card className="w-[500px]">

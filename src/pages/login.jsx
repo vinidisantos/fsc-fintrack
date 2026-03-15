@@ -20,12 +20,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useContext } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import PasswordInput from "../components/password-input";
-import { AuthContext } from "../contexts/auth.jsx";
+import { useAuthContext } from "../contexts/auth.jsx";
 
 const loginSchema = z.object({
   email: z
@@ -40,7 +40,8 @@ const loginSchema = z.object({
 });
 
 const LoginPage = () => {
-  const { user, login } = useContext(AuthContext);
+  const { user, login } = useAuthContext();
+  const navigate = useNavigate();
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
@@ -50,11 +51,15 @@ const LoginPage = () => {
     },
   });
 
-  const handleSubmit = (data) => login(data);
+  const handleSubmit = (data) => {
+    login(data);
+  };
 
-  if (user) {
-    return <h1>Olá, {user.first_name}!</h1>;
-  }
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
   return (
     <div className="flex h-screen w-screen flex-col gap-3 items-center justify-center">

@@ -18,13 +18,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
-import { AuthContext } from "@/contexts/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useContext } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import PasswordInput from "../components/password-input";
+import { useAuthContext } from "../contexts/auth";
 
 const signupSchema = z
   .object({
@@ -53,7 +53,7 @@ const signupSchema = z
   });
 
 const SignUpPage = () => {
-  const { user, signup } = useContext(AuthContext);
+  const { user, signup } = useAuthContext();
   const navigate = useNavigate();
   const form = useForm({
     resolver: zodResolver(signupSchema),
@@ -69,9 +69,12 @@ const SignUpPage = () => {
 
   const handleSubmit = (data) => signup(data);
 
-  if (user) {
-    navigate("/dashboard");
-  }
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
+
   return (
     <div className="flex h-screen w-screen flex-col gap-3 items-center justify-center">
       <Form {...form}>

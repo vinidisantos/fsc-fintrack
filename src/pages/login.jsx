@@ -19,13 +19,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { api } from "@/lib/axios";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
-import { toast } from "sonner";
 import { z } from "zod";
 import PasswordInput from "../components/password-input";
 import { AuthContext } from "../contexts/auth.jsx";
@@ -43,8 +40,7 @@ const loginSchema = z.object({
 });
 
 const LoginPage = () => {
-  const { userTest } = useContext(AuthContext);
-  const [user, setUser] = useState(null);
+  const { user, login } = useContext(AuthContext);
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
@@ -53,58 +49,8 @@ const LoginPage = () => {
       password: "",
     },
   });
-  useEffect(() => {
-    const init = async () => {
-      const accessToken = localStorage.getItem("accessToken");
-      const refreshToken = localStorage.getItem("refreshToken");
-      if (!accessToken && !refreshToken) return;
-      try {
-        const response = await api.get("/users/me", {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-        setUser(response.data);
-      } catch (error) {
-        console.error(error);
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-      }
-    };
-    init();
-  }, []);
-  const loginMutation = useMutation({
-    mutationKey: ["login"],
-    mutationFn: async (data) => {
-      const response = await api.post("/auth/login", {
-        email: data.email,
-        password: data.password,
-      });
 
-      return response.data;
-    },
-  });
-
-  const handleSubmit = (data) => {
-    loginMutation.mutate(data, {
-      onSuccess: (loggedUser) => {
-        const accessToken = loggedUser.tokens.accessToken;
-        const refreshToken = loggedUser.tokens.refreshToken;
-
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("refreshToken", refreshToken);
-
-        setUser(loggedUser);
-
-        toast.success("Login realizado com sucesso!");
-      },
-      onError: (error) => {
-        toast.error(
-          error.response?.data?.message || "Ocorreu um erro ao fazer login",
-        );
-      },
-    });
-  };
+  const handleSubmit = (data) => login(data);
 
   if (user) {
     return <h1>Olá, {user.first_name}!</h1>;
@@ -112,7 +58,6 @@ const LoginPage = () => {
 
   return (
     <div className="flex h-screen w-screen flex-col gap-3 items-center justify-center">
-      <h1>{userTest}</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
           <Card className="w-[500px]">
